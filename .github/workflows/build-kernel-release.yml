@@ -7,8 +7,13 @@ permissions:
 on:
   workflow_dispatch:
     inputs:
-      build_zuma:
+      build_sultan:
         description: 'Do you want to build the Sultan kernel?'
+        required: true
+        type: boolean
+        default: true
+      build_anaconda:
+        description: 'Do you want to build the Anaconda kernel?'
         required: true
         type: boolean
         default: true
@@ -20,8 +25,12 @@ on:
 
 jobs:
   build-kernel-a15-sultan:
-    if: ${{ inputs.build_zuma || inputs.build_zuma == '' }}
+    if: ${{ inputs.build_sultan || inputs.build_sultan == '' }}
     uses: ./.github/workflows/build-kernel-a15-sultan.yml
+    secrets: inherit
+  build-kernel-a15-anaconda:
+    if: ${{ inputs.build_anaconda || inputs.build_anaconda == '' }}
+    uses: ./.github/workflows/build-kernel-a15-anaconda.yml
     secrets: inherit
 
   trigger-release:
@@ -30,8 +39,8 @@ jobs:
         - build-kernel-a15-sultan
     if: ${{ inputs.make_release }}
     env:
-      REPO_OWNER: TheWildJames
-      REPO_NAME: Sultan_KernelSU_SUSFS
+      REPO_OWNER: CRzx1337
+      REPO_NAME: Build-Kernels
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       RELEASE_NAME: "*TEST BUILD* Sultan Kernel With KernelSU Next & SUSFS v1.5.3 *TEST BUILD*"
       RELEASE_NOTES: |
