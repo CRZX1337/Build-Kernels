@@ -47,8 +47,13 @@ jobs:
           # Clone repositories using the branch names
           git clone https://github.com/osm0sis/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b "$SUSFS_BRANCH"
-          git clone --recurse-submodules https://github.com/Trijal08/anaconda_kernel_common-5.15.git
-      
+          git clone https://github.com/Trijal08/anaconda_kernel_common-5.15.git
+
+      - name: ADD Submodules
+        run: |
+          cd "$CONFIG"
+          git submodule update --init --recursive
+          
       - name: Add KernelSU
         run: |
           echo "Changing to configuration directory: $CONFIG..."
