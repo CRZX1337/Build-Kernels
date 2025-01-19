@@ -74,51 +74,8 @@ jobs:
         sultan - Created Kernel!
         simonpunk - Created SUSFS!
         sidex15 - Created module!
-
-        
-        If you have contributed and are not here please remind me!
-        
-  trigger-release-anaconda:
-    runs-on: ubuntu-latest
-    needs:
-        - build-kernel-a15-anaconda
-    if: ${{ inputs.make_release }}
-    env:
-      REPO_OWNER: CRzx1337
-      REPO_NAME: Build-Kernels
-      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_NAME: "*TEST BUILD* Anaconda Kernel With KernelSU Next & SUSFS v1.5.3 *TEST BUILD*"
-      RELEASE_NOTES: |
-        This release contains KernelSU Next and SUSFS v1.5.3
-        
-        Module: 
-        -> https://github.com/sidex15/ksu_module_susfs
-        
-        Official Manager:
-        -> https://github.com/tiann/KernelSU
-        
-        Non-Official Managers:
-        -> https://github.com/rifsxd/KernelSU-Next
-        -> https://github.com/backslashxx/KernelSU
-        -> https://github.com/rsuntk/KernelSU
-        -> https://github.com/5ec1cff/KernelSU
-        -> https://github.com/silvzr/KernelSU
-        -> https://github.com/sidex15/KernelSU
-        
-        Features:
-        [+] KernelSU-Next
-        [+] SUSFS v1.5.3
-        [+] Wireguard Support
-        [+] Maphide LineageOS Detections
-        [+] Futile Maphide for jit-zygote-cache Detections
-        [+] Magic Mount Support
-
-        Special thanks to the following people for their contributions!
-        This helps me alot! <3
-
-        Graphene - Created Kernel!
-        simonpunk - Created SUSFS!
-        sidex15 - Created module!
+        backslashxx - Helped with patches!
+        幕落 - Donation!
 
         If you have contributed and are not here please remind me!
     steps:
