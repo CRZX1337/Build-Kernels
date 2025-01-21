@@ -31,8 +31,9 @@ jobs:
     - name: Setup Bazel Link
       run: sudo ln -s $(which bazel) tools/bazel
 
-    - name: Clone Kernel Source
+    - name: Clean and Clone Kernel Source
       run: |
+        rm -rf * .[!.]*
         git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git .
         git checkout Vallhound
         git submodule update --init --recursive
