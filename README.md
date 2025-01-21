@@ -1,0 +1,1 @@
+[![Build and Release GKI Kernels](https://github.com/CRzx1337/Build-Kernels/actions/workflows/build-kernel-release.yml/badge.svg?branch=main)](https://github.com/CRzx1337/Build-Kernels/actions/workflows/build-kernel-release.yml)
