@@ -1,0 +1,41 @@
+name: Build Shusky Kernel
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360 # Erhöhe das Timeout, da Kernel-Builds lange dauern können
+
+    steps:
+      - name: Installiere benötigte Pakete
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y curl gnupg zip unzip git build-essential bison flex libssl-dev bc # Füge git und build-essential hinzu
+          curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel-archive-keyring.gpg
+          sudo mv bazel-archive-keyring.gpg /usr/share/keyrings
+          echo "deb [signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://apt.bazel.build/ stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+          sudo apt-get update
+          sudo apt-get install bazel openjdk-11-jdk
+
+      - name: Repository auschecken (Stamm-Repo)
+        uses: actions/checkout@v3
+
+      - name: Shusky Kernel Quellcode herunterladen
+        run: git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git kernel_shusky
+        working-directory: . # Stelle sicher, dass das im Wurzelverzeichnis passiert
+
+      - name: Führe den Shusky Build aus
+        run: ./build_shusky.sh --page_size=16k # Oder andere notwendige Argumente
+        working-directory: kernel_shusky # Wichtig: ins Kernel-Verzeichnis wechseln
+
+      - name: Artefakte hochladen
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: shusky-kernel-artefakte
+          path: kernel_shusky/out # Passe den Pfad an den tatsächlichen Ausgabepfad an. Wahrscheinlich kernel_shusky/out/dist
