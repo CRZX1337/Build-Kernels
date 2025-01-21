@@ -18,7 +18,14 @@ jobs:
           sudo apt-get install -y curl gnupg zip unzip git build-essential bison flex libssl-dev bc wget software-properties-common apt-transport-https
 
           # Korrektur für das apt.bazel.build Problem
-          curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/bazel-archive-keyring.gpg >/dev/null
+          # Versuche zuerst den Bazel Keyring zu aktualisieren
+          sudo apt-key update --keyring /usr/share/keyrings/bazel-archive-keyring.gpg
+
+          # Falls das Update fehlschlägt, füge den Key erneut hinzu
+          if [ $? -eq 1 ]; then
+            curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/bazel-archive-keyring.gpg >/dev/null
+          fi
+
           echo "deb [signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://apt.bazel.build/ stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
           sudo apt-get update
           sudo apt-get install bazel openjdk-11-jdk
