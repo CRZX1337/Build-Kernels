@@ -1,57 +1,46 @@
-name: Build Shusky Kernel
+name: Build Pixel 8 Pro Kernel
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 360
-
+    
     steps:
-      - name: Installiere benötigte Pakete
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y curl gnupg zip unzip git build-essential bison flex libssl-dev bc wget software-properties-common apt-transport-https
+    - name: Install Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential curl zip unzip git python3
 
-          # Versuche zuerst den Bazel Keyring zu aktualisieren
-          sudo apt-key update --keyring /usr/share/keyrings/bazel-archive-keyring.gpg
+    - name: Install Bazel
+      run: |
+        curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
+        sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
+        echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
+        sudo apt-get update
+        sudo apt-get install -y bazel
 
-          # Falls das Update fehlschlägt, füge den Key erneut hinzu und überprüfe die Verbindung
-          if [ $? -ne 0 ]; then
-            echo "Fehler beim Aktualisieren des Keyrings. Füge den Key erneut hinzu und überprüfe die Verbindung."
-            curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/bazel-archive-keyring.gpg >/dev/null
-            ping -c 3 apt.bazel.build
-            if [ $? -ne 0 ]; then
-              echo "Konnte apt.bazel.build nicht erreichen. Überprüfe die Netzwerkverbindung."
-              exit 1 # Workflow abbrechen, wenn die Verbindung nicht hergestellt werden kann
-            fi
-          fi
+    - name: Checkout Kernel Source
+      uses: actions/checkout@v3
+      with:
+        repository: hentaios-gs-6.x/kernel_devices_google_shusky
+        ref: main
 
-          echo "deb [signed-by=/usr/share/keyrings/bazel-archive-keyring.gpg] https://apt.bazel.build/ stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
-          sudo apt-get update
-          sudo apt-get install bazel openjdk-11-jdk
+    - name: Build Kernel
+      run: |
+        chmod +x build_shusky.sh
+        ./build_shusky.sh
 
-      - name: Repository auschecken (Stamm-Repo)
-        uses: actions/checkout@v3
-
-      - name: Shusky Kernel Quellcode herunterladen
-        run: git clone --depth 1 https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git kernel_shusky
-        working-directory: .
-
-      - name: Führe den Shusky Build aus
-        run: ./build_shusky.sh --page_size=16k # Oder andere notwendige Argumente
-        working-directory: kernel_shusky
-
-      - name: Artefakte hochladen
-        uses: actions/upload-artifact@v3
-        if: always()
-        with:
-          name: shusky-kernel-artefakte
-          path: kernel_shusky/out/dist # Überprüfe den genauen Pfad nach dem Build!
-
-      - name: Aufräumen
-        run: rm -rf kernel_shusky
+    - name: Upload Kernel Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: kernel-artifacts
+        path: |
+          out/mixed/dist/*
+          bazel-bin/**/*.ko
+          bazel-bin/**/*.img
