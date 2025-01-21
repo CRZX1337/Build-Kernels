@@ -28,7 +28,7 @@ jobs:
     - name: Clone Kernel Source
       run: |
         git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git .
-        git checkout main
+        git checkout Vallhound
 
     - name: Build Kernel
       run: |
