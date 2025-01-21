@@ -28,7 +28,7 @@ jobs:
     - name: Checkout Kernel Source
       uses: actions/checkout@v3
       with:
-        repository: hentaios-gs-6.x/kernel_devices_google_shusky
+        repository: https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git
         ref: main
 
     - name: Build Kernel
