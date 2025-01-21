@@ -12,12 +12,6 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
-      with:
-        repository: 'hentaios-gs-6.x/kernel_devices_google_shusky'
-        fetch-depth: 0
-
     - name: Install Dependencies
       run: |
         sudo apt-get update
@@ -30,14 +24,18 @@ jobs:
         echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
         sudo apt-get update
         sudo apt-get install -y bazel
-        sudo ln -s $(which bazel) tools/bazel
+
+    - name: Create Directory Structure
+      run: mkdir -p tools
+
+    - name: Setup Bazel Link
+      run: sudo ln -s $(which bazel) tools/bazel
 
     - name: Clone Kernel Source
       run: |
         git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git .
         git checkout Vallhound
         git submodule update --init --recursive
-        mkdir -p tools
 
     - name: Build Kernel
       run: |
