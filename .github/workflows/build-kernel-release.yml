@@ -85,7 +85,7 @@ jobs:
       REPO_OWNER: CRzx1337
       REPO_NAME: Build-Kernels
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      RELEASE_NAME: "*TEST BUILD* Anaconda Kernel With KernelSU Next & SUSFS v1.5.3 *TEST BUILD*"
+      RELEASE_NAME: "Pixel 8/Pro Kernel With KernelSU Next & SUSFS v1.5.3"
       RELEASE_NOTES: |
         This release contains KernelSU Next and SUSFS v1.5.3
         
@@ -93,15 +93,7 @@ jobs:
         -> https://github.com/sidex15/ksu_module_susfs
         
         Official Manager:
-        -> https://github.com/tiann/KernelSU
-        
-        Non-Official Managers:
         -> https://github.com/rifsxd/KernelSU-Next
-        -> https://github.com/backslashxx/KernelSU
-        -> https://github.com/rsuntk/KernelSU
-        -> https://github.com/5ec1cff/KernelSU
-        -> https://github.com/silvzr/KernelSU
-        -> https://github.com/sidex15/KernelSU
         
         Features:
         [+] KernelSU-Next
@@ -114,7 +106,8 @@ jobs:
         Special thanks to the following people for their contributions!
         This helps me alot! <3
 
-        Trijal08 - Created Kernel!
+        Sultan - Created Sultan Kernel!
+        Trijal08 - Created Anaconda Kernel!
         simonpunk - Created SUSFS!
         sidex15 - Created module!
 
