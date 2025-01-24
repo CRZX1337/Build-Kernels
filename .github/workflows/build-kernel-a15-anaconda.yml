@@ -45,7 +45,7 @@ jobs:
 
           # Clone repositories using the branch names
           git clone https://github.com/osm0sis/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
-          git clone https://github.com/Trijal08/anaconda_kernel_common-5.15.git
+          git clone https://github.com/Trijal08/anaconda_kernel_common-5.15.git -b anaconda-zuma-shusky
 
       - name: ADD Submodules
         run: |
