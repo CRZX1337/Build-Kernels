@@ -37,14 +37,14 @@ jobs:
           echo "Cloning AnyKernel3 and other dependencies..."
     
           # Define the branch names using the matrix values
-          ANYKERNEL_BRANCH="master"
+          ANYKERNEL_BRANCH="15.0.0-sultan-zuma"
           SUSFS_BRANCH="gki-android14-5.15"
 
           # Debug print the branches
           echo "Using branch for AnyKernel3: $ANYKERNEL_BRANCH"
 
           # Clone repositories using the branch names
-          git clone https://github.com/osm0sis/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
+          git clone https://github.com/TheWildJames/AnyKernel3.git -b "$ANYKERNEL_BRANCH"
           git clone https://github.com/Trijal08/anaconda_kernel_common-5.15.git -b anaconda-zuma-shusky
 
       - name: ADD Submodules
