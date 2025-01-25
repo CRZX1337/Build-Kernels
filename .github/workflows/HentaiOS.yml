@@ -26,10 +26,15 @@ jobs:
         sudo apt-get install -y bazel
 
     - name: Create Directory Structure
-      run: mkdir -p tools
+      run: |
+        mkdir -p tools
+        pwd
+        echo "WORKSPACE_DIR=$(pwd)" >> $GITHUB_ENV
 
     - name: Setup Bazel Link
-      run: sudo ln -s $(which bazel) tools/bazel
+      run: |
+        sudo ln -s $(which bazel) ${{ env.WORKSPACE_DIR }}/tools/bazel
+        ls -la ${{ env.WORKSPACE_DIR }}/tools/
 
     - name: Clean and Clone Kernel Source
       run: |
