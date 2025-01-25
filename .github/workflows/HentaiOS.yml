@@ -45,35 +45,67 @@ jobs:
       run: |
         # Save current directory
         WORKSPACE_DIR=$(pwd)
+        echo "Workspace directory: $WORKSPACE_DIR"
+        
         # Save tools
         cp -r tools /tmp/tools_backup
+        echo "Tools backed up to /tmp/tools_backup"
+        
         # Create temp directory for clone
         TEMP_DIR=$(mktemp -d)
-        echo "Cloning kernel source to temp directory"
+        echo "Created temp directory: $TEMP_DIR"
+        
+        # Clone kernel source
+        echo "Cloning kernel source..."
         git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git "$TEMP_DIR"
         cd "$TEMP_DIR"
+        echo "Checking out Vallhound branch..."
         git checkout Vallhound
+        echo "Updating submodules..."
         git submodule update --init --recursive
-        # Clean workspace directory completely
+        
+        echo "Temp directory contents:"
+        ls -la "$TEMP_DIR"
+        
+        # Clean workspace directory
         cd "$WORKSPACE_DIR"
+        echo "Cleaning workspace directory..."
         rm -rf * .[!.]* ..?*
-        # Move kernel source from temp to workspace
+        
+        # Move kernel source
+        echo "Moving kernel source to workspace..."
         mv "$TEMP_DIR"/* "$TEMP_DIR"/.[!.]* "$WORKSPACE_DIR"/ 2>/dev/null || true
+        
         # Restore tools
+        echo "Restoring tools..."
         cp -r /tmp/tools_backup tools
+        
         # Clean up
         rm -rf "$TEMP_DIR"
-        echo "Final directory structure:"
+        
+        echo "Final workspace contents:"
         ls -la
-        echo "Tools directory contents:"
-        ls -la tools/
+        
+        echo "Checking for build script:"
+        if [ -f build_shusky.sh ]; then
+          echo "build_shusky.sh exists"
+          cat build_shusky.sh
+        else
+          echo "ERROR: build_shusky.sh not found!"
+          exit 1
+        fi
 
     - name: Build Kernel
       run: |
         echo "Current directory: $(pwd)"
-        echo "PATH: $PATH"
+        echo "Directory contents:"
+        ls -la
         echo "Tools directory contents:"
         ls -la tools/
+        if [ ! -f build_shusky.sh ]; then
+          echo "ERROR: build_shusky.sh not found!"
+          exit 1
+        fi
         chmod +x build_shusky.sh
         ./build_shusky.sh
 
