@@ -49,11 +49,14 @@ jobs:
         # Copy bazel to tools directory again to ensure it exists
         cp /usr/local/bin/bazel tools/
         chmod +x tools/bazel
+        # Save tools directory to /tmp for safety
         echo "Saving tools directory"
-        cp -r tools tools_backup
-        rm -rf * .[!.]*
+        cp -r tools /tmp/tools_backup
+        # Clean directory excluding the backup
+        find . -mindepth 1 -maxdepth 1 ! -name ".git*" -exec rm -rf {} +
+        # Restore tools directory from /tmp
         echo "Restoring tools directory"
-        mv tools_backup tools
+        cp -r /tmp/tools_backup tools
         echo "Cloning kernel source"
         git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git .
         git checkout Vallhound
