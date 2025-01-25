@@ -43,24 +43,26 @@ jobs:
 
     - name: Prepare Kernel Source
       run: |
-        echo "Current directory before clone: $(pwd)"
-        # Create tools directory if it doesn't exist
-        mkdir -p tools
-        # Copy bazel to tools directory again to ensure it exists
-        cp /usr/local/bin/bazel tools/
-        chmod +x tools/bazel
-        # Save tools directory to /tmp for safety
-        echo "Saving tools directory"
+        # Save current directory
+        WORKSPACE_DIR=$(pwd)
+        # Save tools
         cp -r tools /tmp/tools_backup
-        # Clean everything including hidden files
-        rm -rf * .[!.]* ..?*
-        # Restore tools directory from /tmp
-        echo "Restoring tools directory"
-        cp -r /tmp/tools_backup tools
-        echo "Cloning kernel source"
-        git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git .
+        # Create temp directory for clone
+        TEMP_DIR=$(mktemp -d)
+        echo "Cloning kernel source to temp directory"
+        git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git "$TEMP_DIR"
+        cd "$TEMP_DIR"
         git checkout Vallhound
         git submodule update --init --recursive
+        # Clean workspace directory completely
+        cd "$WORKSPACE_DIR"
+        rm -rf * .[!.]* ..?*
+        # Move kernel source from temp to workspace
+        mv "$TEMP_DIR"/* "$TEMP_DIR"/.[!.]* "$WORKSPACE_DIR"/ 2>/dev/null || true
+        # Restore tools
+        cp -r /tmp/tools_backup tools
+        # Clean up
+        rm -rf "$TEMP_DIR"
         echo "Final directory structure:"
         ls -la
         echo "Tools directory contents:"
