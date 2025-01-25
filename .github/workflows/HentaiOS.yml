@@ -22,27 +22,24 @@ jobs:
 
     - name: Install Bazel
       run: |
-        curl -fsSL https://bazel.build/bazel-release.pub.gpg | gpg --dearmor > bazel.gpg
-        sudo mv bazel.gpg /etc/apt/trusted.gpg.d/
-        echo "deb [arch=amd64] https://storage.googleapis.com/bazel-apt stable jdk1.8" | sudo tee /etc/apt/sources.list.d/bazel.list
-        sudo apt-get update
-        sudo apt-get install -y bazel
+        # Download bazelisk directly
+        curl -L -o bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.18.0/bazelisk-linux-amd64
+        chmod +x bazelisk
+        sudo mv bazelisk /usr/local/bin/bazel
 
     - name: Setup Build Environment
       run: |
         WORKSPACE_DIR=$(pwd)
         echo "Current directory: $WORKSPACE_DIR"
         mkdir -p tools
-        BAZEL_PATH=$(which bazel)
-        echo "Bazel path: $BAZEL_PATH"
-        sudo cp "$BAZEL_PATH" tools/bazel
-        sudo chmod +x tools/bazel
+        echo "Copying bazel to tools directory"
+        cp /usr/local/bin/bazel tools/
+        chmod +x tools/bazel
         echo "Tools directory contents:"
         ls -la tools/
-        echo "Adding tools to PATH"
+        echo "Testing bazel directly:"
+        tools/bazel version
         echo "PATH=$WORKSPACE_DIR/tools:$PATH" >> $GITHUB_ENV
-        echo "Verifying bazel in tools:"
-        tools/bazel --version
 
     - name: Prepare Kernel Source
       run: |
