@@ -12,6 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+      
     - name: Install Dependencies
       run: |
         sudo apt-get update
@@ -25,16 +28,14 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y bazel
 
-    - name: Create Directory Structure
+    - name: Setup Build Environment
       run: |
         mkdir -p tools
-        pwd
-        echo "WORKSPACE_DIR=$(pwd)" >> $GITHUB_ENV
-
-    - name: Setup Bazel Link
-      run: |
-        sudo ln -s $(which bazel) ${{ env.WORKSPACE_DIR }}/tools/bazel
-        ls -la ${{ env.WORKSPACE_DIR }}/tools/
+        which bazel
+        sudo cp $(which bazel) tools/bazel
+        sudo chmod +x tools/bazel
+        ls -la tools/
+        echo "PATH=$PWD/tools:$PATH" >> $GITHUB_ENV
 
     - name: Clean and Clone Kernel Source
       run: |
