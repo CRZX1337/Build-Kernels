@@ -30,22 +30,43 @@ jobs:
 
     - name: Setup Build Environment
       run: |
+        WORKSPACE_DIR=$(pwd)
+        echo "Current directory: $WORKSPACE_DIR"
         mkdir -p tools
-        which bazel
-        sudo cp $(which bazel) tools/bazel
+        BAZEL_PATH=$(which bazel)
+        echo "Bazel path: $BAZEL_PATH"
+        sudo cp "$BAZEL_PATH" tools/bazel
         sudo chmod +x tools/bazel
+        echo "Tools directory contents:"
         ls -la tools/
-        echo "PATH=$PWD/tools:$PATH" >> $GITHUB_ENV
+        echo "Adding tools to PATH"
+        echo "PATH=$WORKSPACE_DIR/tools:$PATH" >> $GITHUB_ENV
+        echo "Verifying bazel in tools:"
+        tools/bazel --version
 
-    - name: Clean and Clone Kernel Source
+    - name: Prepare Kernel Source
       run: |
+        echo "Current directory before clone: $(pwd)"
+        echo "Saving tools directory"
+        mv tools tools_backup
         rm -rf * .[!.]*
+        echo "Restoring tools directory"
+        mv tools_backup tools
+        echo "Cloning kernel source"
         git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git .
         git checkout Vallhound
         git submodule update --init --recursive
+        echo "Final directory structure:"
+        ls -la
+        echo "Tools directory contents:"
+        ls -la tools/
 
     - name: Build Kernel
       run: |
+        echo "Current directory: $(pwd)"
+        echo "PATH: $PATH"
+        echo "Tools directory contents:"
+        ls -la tools/
         chmod +x build_shusky.sh
         ./build_shusky.sh
 
