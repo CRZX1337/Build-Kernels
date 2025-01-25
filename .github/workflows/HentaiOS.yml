@@ -44,8 +44,13 @@ jobs:
     - name: Prepare Kernel Source
       run: |
         echo "Current directory before clone: $(pwd)"
+        # Create tools directory if it doesn't exist
+        mkdir -p tools
+        # Copy bazel to tools directory again to ensure it exists
+        cp /usr/local/bin/bazel tools/
+        chmod +x tools/bazel
         echo "Saving tools directory"
-        mv tools tools_backup
+        cp -r tools tools_backup
         rm -rf * .[!.]*
         echo "Restoring tools directory"
         mv tools_backup tools
