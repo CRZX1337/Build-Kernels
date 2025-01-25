@@ -52,8 +52,10 @@ jobs:
         # Save tools directory to /tmp for safety
         echo "Saving tools directory"
         cp -r tools /tmp/tools_backup
-        # Clean directory excluding the backup
-        find . -mindepth 1 -maxdepth 1 ! -name ".git*" -exec rm -rf {} +
+        # Remove .git directory if it exists
+        rm -rf .git
+        # Clean everything except tools backup
+        find . -mindepth 1 -maxdepth 1 -exec rm -rf {} +
         # Restore tools directory from /tmp
         echo "Restoring tools directory"
         cp -r /tmp/tools_backup tools
