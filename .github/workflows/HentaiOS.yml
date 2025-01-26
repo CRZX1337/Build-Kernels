@@ -28,6 +28,7 @@ jobs:
         sudo mv bazelisk /usr/local/bin/bazel
 
     - name: Setup Build Environment
+      id: setup
       run: |
         WORKSPACE_DIR=$(pwd)
         echo "Current directory: $WORKSPACE_DIR"
@@ -42,6 +43,7 @@ jobs:
         echo "PATH=$WORKSPACE_DIR/tools:$PATH" >> $GITHUB_ENV
 
     - name: Prepare Kernel Source
+      id: prepare
       run: |
         # Save current directory
         WORKSPACE_DIR=$(pwd)
@@ -102,8 +104,13 @@ jobs:
         
         echo "Final workspace contents:"
         ls -la
+        
+        # Signal completion
+        echo "prepare_complete=true" >> $GITHUB_OUTPUT
 
     - name: Build Kernel
+      needs: prepare
+      if: steps.prepare.outputs.prepare_complete == 'true'
       run: |
         echo "Current directory: $(pwd)"
         echo "Directory contents:"
@@ -116,6 +123,7 @@ jobs:
         ./build_shusky.sh
 
     - name: Upload Kernel Artifacts
+      if: success()
       uses: actions/upload-artifact@v3
       with:
         name: kernel-artifacts
