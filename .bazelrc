@@ -1,8 +1,8 @@
 # Basic build settings
 build --enable_platform_specific_config
 
-# Enable stamp by default
-build --stamp
+# Enable stamping
+build --workspace_status_command=./tools/workspace_status.sh
 
 # Use C++17 by default
 build --cxxopt=-std=c++17
