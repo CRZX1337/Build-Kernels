@@ -49,12 +49,13 @@ jobs:
         
         # Verify Bazel files exist before backup
         echo "Initial Bazel files:"
-        ls -la MODULE.bazel WORKSPACE.bazel
+        ls -la MODULE.bazel WORKSPACE.bazel .bazelrc
         
         # Save tools and Bazel files
         cp -r tools /tmp/tools_backup
         cp MODULE.bazel /tmp/MODULE.bazel
         cp WORKSPACE.bazel /tmp/WORKSPACE.bazel
+        cp .bazelrc /tmp/.bazelrc
         echo "Tools and Bazel files backed up"
         
         # Create temp directory for clone
@@ -84,14 +85,17 @@ jobs:
         cp -r /tmp/tools_backup tools
         cp /tmp/MODULE.bazel MODULE.bazel
         cp /tmp/WORKSPACE.bazel WORKSPACE.bazel
+        cp /tmp/.bazelrc .bazelrc
         
         # Verify files after restore
         echo "Verifying restored files:"
-        ls -la MODULE.bazel WORKSPACE.bazel
+        ls -la MODULE.bazel WORKSPACE.bazel .bazelrc
         echo "Contents of MODULE.bazel:"
         cat MODULE.bazel
         echo "Contents of WORKSPACE.bazel:"
         cat WORKSPACE.bazel
+        echo "Contents of .bazelrc:"
+        cat .bazelrc
         
         # Clean up
         rm -rf "$TEMP_DIR"
@@ -107,7 +111,7 @@ jobs:
         echo "Tools directory contents:"
         ls -la tools/
         echo "Verifying Bazel files before build:"
-        ls -la MODULE.bazel WORKSPACE.bazel
+        ls -la MODULE.bazel WORKSPACE.bazel .bazelrc
         chmod +x build_shusky.sh
         ./build_shusky.sh
 
