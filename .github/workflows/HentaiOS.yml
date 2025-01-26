@@ -47,6 +47,10 @@ jobs:
         WORKSPACE_DIR=$(pwd)
         echo "Workspace directory: $WORKSPACE_DIR"
         
+        # Verify Bazel files exist before backup
+        echo "Initial Bazel files:"
+        ls -la MODULE.bazel WORKSPACE.bazel
+        
         # Save tools and Bazel files
         cp -r tools /tmp/tools_backup
         cp MODULE.bazel /tmp/MODULE.bazel
@@ -81,6 +85,14 @@ jobs:
         cp /tmp/MODULE.bazel MODULE.bazel
         cp /tmp/WORKSPACE.bazel WORKSPACE.bazel
         
+        # Verify files after restore
+        echo "Verifying restored files:"
+        ls -la MODULE.bazel WORKSPACE.bazel
+        echo "Contents of MODULE.bazel:"
+        cat MODULE.bazel
+        echo "Contents of WORKSPACE.bazel:"
+        cat WORKSPACE.bazel
+        
         # Clean up
         rm -rf "$TEMP_DIR"
         
@@ -94,6 +106,8 @@ jobs:
         ls -la
         echo "Tools directory contents:"
         ls -la tools/
+        echo "Verifying Bazel files before build:"
+        ls -la MODULE.bazel WORKSPACE.bazel
         chmod +x build_shusky.sh
         ./build_shusky.sh
 
