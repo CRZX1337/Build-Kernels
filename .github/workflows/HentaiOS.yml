@@ -28,7 +28,6 @@ jobs:
         sudo mv bazelisk /usr/local/bin/bazel
 
     - name: Setup Build Environment
-      id: setup
       run: |
         WORKSPACE_DIR=$(pwd)
         echo "Current directory: $WORKSPACE_DIR"
@@ -43,7 +42,6 @@ jobs:
         echo "PATH=$WORKSPACE_DIR/tools:$PATH" >> $GITHUB_ENV
 
     - name: Prepare Kernel Source
-      id: prepare
       run: |
         # Save current directory
         WORKSPACE_DIR=$(pwd)
@@ -89,6 +87,15 @@ jobs:
         cp /tmp/WORKSPACE.bazel WORKSPACE.bazel
         cp /tmp/.bazelrc .bazelrc
         
+        # Create workspace status script
+        mkdir -p tools
+        cat > tools/workspace_status.sh << 'EOF'
+#!/bin/bash
+echo "STABLE_BUILD_SCM_REVISION $(git rev-parse HEAD)"
+echo "BUILD_TIMESTAMP $(date +%s)"
+EOF
+        chmod +x tools/workspace_status.sh
+        
         # Verify files after restore
         echo "Verifying restored files:"
         ls -la MODULE.bazel WORKSPACE.bazel .bazelrc
@@ -104,13 +111,8 @@ jobs:
         
         echo "Final workspace contents:"
         ls -la
-        
-        # Signal completion
-        echo "prepare_complete=true" >> $GITHUB_OUTPUT
 
     - name: Build Kernel
-      needs: prepare
-      if: steps.prepare.outputs.prepare_complete == 'true'
       run: |
         echo "Current directory: $(pwd)"
         echo "Directory contents:"
