@@ -90,10 +90,10 @@ jobs:
         # Create workspace status script
         mkdir -p tools
         cat > tools/workspace_status.sh << 'EOF'
-#!/bin/bash
-echo "STABLE_BUILD_SCM_REVISION $(git rev-parse HEAD)"
-echo "BUILD_TIMESTAMP $(date +%s)"
-EOF
+        #!/bin/bash
+        echo "STABLE_BUILD_SCM_REVISION $(git rev-parse HEAD)"
+        echo "BUILD_TIMESTAMP $(date +%s)"
+        EOF
         chmod +x tools/workspace_status.sh
         
         # Verify files after restore
