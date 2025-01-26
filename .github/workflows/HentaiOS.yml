@@ -47,9 +47,11 @@ jobs:
         WORKSPACE_DIR=$(pwd)
         echo "Workspace directory: $WORKSPACE_DIR"
         
-        # Save tools
+        # Save tools and Bazel files
         cp -r tools /tmp/tools_backup
-        echo "Tools backed up to /tmp/tools_backup"
+        cp MODULE.bazel /tmp/MODULE.bazel
+        cp WORKSPACE.bazel /tmp/WORKSPACE.bazel
+        echo "Tools and Bazel files backed up"
         
         # Create temp directory for clone
         TEMP_DIR=$(mktemp -d)
@@ -64,9 +66,6 @@ jobs:
         echo "Updating submodules..."
         git submodule update --init --recursive
         
-        echo "Temp directory contents:"
-        ls -la "$TEMP_DIR"
-        
         # Clean workspace directory
         cd "$WORKSPACE_DIR"
         echo "Cleaning workspace directory..."
@@ -76,24 +75,17 @@ jobs:
         echo "Moving kernel source to workspace..."
         mv "$TEMP_DIR"/* "$TEMP_DIR"/.[!.]* "$WORKSPACE_DIR"/ 2>/dev/null || true
         
-        # Restore tools
-        echo "Restoring tools..."
+        # Restore tools and Bazel files
+        echo "Restoring tools and Bazel files..."
         cp -r /tmp/tools_backup tools
+        cp /tmp/MODULE.bazel MODULE.bazel
+        cp /tmp/WORKSPACE.bazel WORKSPACE.bazel
         
         # Clean up
         rm -rf "$TEMP_DIR"
         
         echo "Final workspace contents:"
         ls -la
-        
-        echo "Checking for build script:"
-        if [ -f build_shusky.sh ]; then
-          echo "build_shusky.sh exists"
-          cat build_shusky.sh
-        else
-          echo "ERROR: build_shusky.sh not found!"
-          exit 1
-        fi
 
     - name: Build Kernel
       run: |
@@ -102,10 +94,6 @@ jobs:
         ls -la
         echo "Tools directory contents:"
         ls -la tools/
-        if [ ! -f build_shusky.sh ]; then
-          echo "ERROR: build_shusky.sh not found!"
-          exit 1
-        fi
         chmod +x build_shusky.sh
         ./build_shusky.sh
 
