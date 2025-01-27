@@ -1,6 +1,10 @@
 # Basic build settings
 build --enable_platform_specific_config
 
+# Define stamp configurations
+config:stamp --stamp
+config:nostamp --nostamp
+
 # Enable stamping
 build --workspace_status_command=./tools/workspace_status.sh
 
