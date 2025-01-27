@@ -64,6 +64,12 @@ jobs:
         EOF
         chmod +x tools/workspace_status.sh
 
+        - name: Verify .bazelrc
+        working-directory: ./kernel_devices_google_shusky
+        run: |
+           echo "Contents of .bazelrc:"
+           cat .bazelrc
+
     - name: Debug Environment
       working-directory: ./kernel_devices_google_shusky
       run: |
@@ -76,7 +82,7 @@ jobs:
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
-        ./build_shusky.sh --verbose_failures --stamp
+          ./build_shusky.sh --verbose_failures --stamp --define=stamp=true
 
     - name: Upload Artifacts
       if: success()
