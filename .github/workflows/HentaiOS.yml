@@ -50,6 +50,14 @@ jobs:
         echo "Contents of .bazelrc:"
         cat .bazelrc
 
+    - name: Modify device.bazelrc to include stamp configuration
+      working-directory: ./kernel_devices_google_shusky
+      run: |
+        # Füge die Definition für stamp in device.bazelrc hinzu
+        echo "build:stamp --define=stamp=true" >> device.bazelrc
+        echo "Updated device.bazelrc:"
+        cat device.bazelrc
+
     - name: Setup Bazel Binary
       working-directory: ./kernel_devices_google_shusky
       run: |
@@ -71,7 +79,7 @@ jobs:
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
-        ./build_shusky.sh --verbose_failures --config=shusky
+        ./build_shusky.sh --verbose_failures --config=shusky --config=stamp
 
     - name: Upload Artifacts
       if: success()
