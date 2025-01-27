@@ -37,11 +37,8 @@ jobs:
       working-directory: ./kernel_devices_google_shusky
       run: |
         echo "8.0.1" > .bazelversion
-        # Overwrite .bazelrc to avoid duplication issues
         cat << EOF > .bazelrc
-        build --stamp
-        build --enable_platform_specific_config
-        build --config=linux
+        build --config=shusky
         try-import %workspace%/device.bazelrc
         EOF
 
@@ -78,8 +75,8 @@ jobs:
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
-        # Force-stamp the build
-        ./build_shusky.sh --verbose_failures --config=shusky --config=stamp
+        # Build the kernel using only --config=shusky
+        ./build_shusky.sh --verbose_failures --config=shusky
 
     - name: Upload Artifacts
       if: success()
