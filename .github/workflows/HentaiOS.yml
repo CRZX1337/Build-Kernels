@@ -37,21 +37,32 @@ jobs:
       working-directory: ./kernel_devices_google_shusky
       run: |
         echo "8.0.1" > .bazelversion
-        cat << EOF >> .bazelrc
+        # Overwrite .bazelrc to avoid duplication issues
+        cat << EOF > .bazelrc
         build --stamp
         build --enable_platform_specific_config
         build --config=linux
         try-import %workspace%/device.bazelrc
         EOF
 
-    # ADD THIS STEP BACK TO COPY BAZEL TO tools/
+    - name: Verify .bazelrc
+      working-directory: ./kernel_devices_google_shusky
+      run: |
+        echo "Contents of .bazelrc:"
+        cat .bazelrc
+
+    - name: Verify device.bazelrc
+      working-directory: ./kernel_devices_google_shusky
+      run: |
+        echo "Contents of device.bazelrc:"
+        cat device.bazelrc || echo "No device.bazelrc"
+
     - name: Setup Bazel Binary
       working-directory: ./kernel_devices_google_shusky
       run: |
         mkdir -p tools
         cp /usr/local/bin/bazel tools/
         chmod +x tools/bazel
-        ls -l tools/bazel  # Verify it exists
 
     - name: Setup Workspace Status Script
       working-directory: ./kernel_devices_google_shusky
@@ -64,25 +75,11 @@ jobs:
         EOF
         chmod +x tools/workspace_status.sh
 
-        - name: Verify .bazelrc
-        working-directory: ./kernel_devices_google_shusky
-        run: |
-           echo "Contents of .bazelrc:"
-           cat .bazelrc
-
-    - name: Debug Environment
-      working-directory: ./kernel_devices_google_shusky
-      run: |
-        echo "Current directory: $(pwd)"
-        echo "Bazel version: $(tools/bazel --version)"
-        echo "Clang version: $(clang --version)"
-        echo "Git revision: $(git rev-parse HEAD)"
-        ls -l tools/
-
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
-          ./build_shusky.sh --verbose_failures --stamp --define=stamp=true
+        # Force-stamp the build
+        ./build_shusky.sh --verbose_failures --stamp --define=stamp=true
 
     - name: Upload Artifacts
       if: success()
