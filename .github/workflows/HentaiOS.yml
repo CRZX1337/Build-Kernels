@@ -37,10 +37,11 @@ jobs:
       working-directory: ./kernel_devices_google_shusky
       run: |
         echo "8.0.1" > .bazelversion
-        # Create a .bazelrc file to define 'stamp' configuration
+        # Korrigierte .bazelrc mit common:stamp
         cat << EOF > .bazelrc
-        build:stamp --workspace_status_command=tools/workspace_status.sh
+        common:stamp --workspace_status_command=tools/workspace_status.sh
         try-import %workspace%/device.bazelrc
+        build:shusky --config=stamp
         EOF
 
     - name: Setup Bazel Binary
@@ -64,14 +65,15 @@ jobs:
     - name: Verify Configuration Files
       working-directory: ./kernel_devices_google_shusky
       run: |
-        echo "Verifying .bazelrc:"
-        cat .bazelrc || echo ".bazelrc not found"
-        echo "Verifying device.bazelrc:"
-        cat device.bazelrc || echo "device.bazelrc not found"
+        echo "===== .bazelrc Inhalt ====="
+        cat .bazelrc || echo ".bazelrc nicht gefunden"
+        echo "===== device.bazelrc Inhalt ====="
+        cat device.bazelrc || echo "device.bazelrc nicht gefunden"
 
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
+       sleep 5
         ./build_shusky.sh --verbose_failures --config=shusky
 
     - name: Upload Artifacts
