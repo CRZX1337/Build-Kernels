@@ -33,6 +33,12 @@ jobs:
         git checkout Vallhound
         git submodule update --init --recursive
 
+    - name: Copy Bazel to Kernel Tools Directory
+      run: |
+        mkdir -p kernel_devices_google_shusky/tools
+        cp /usr/local/bin/bazel kernel_devices_google_shusky/tools/
+        chmod +x kernel_devices_google_shusky/tools/bazel
+
     - name: Setup Workspace Status Script
       run: |
         mkdir -p kernel_devices_google_shusky/tools
