@@ -38,7 +38,7 @@ jobs:
       run: |
         echo "8.0.1" > .bazelversion
         cat << EOF > .bazelrc
-        build --stamp
+        build --config=stamp
         build --enable_platform_specific_config
         build --config=linux
         try-import %workspace%/device.bazelrc
@@ -74,12 +74,16 @@ jobs:
         EOF
         chmod +x tools/workspace_status.sh
 
+    - name: Debug Bazel Configuration
+      working-directory: ./kernel_devices_google_shusky
+      run: |
+        echo "Bazel Configuration Debug:"
+        ./tools/bazel info
+
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
-        # Wait for all previous steps to complete
-        sleep 5
-        ./build_shusky.sh --verbose_failures --stamp --define=stamp=true
+        ./build_shusky.sh --verbose_failures --config=stamp
 
     - name: Upload Artifacts
       if: success()
