@@ -10,15 +10,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout Repository
       uses: actions/checkout@v3
-      
+
     - name: Install Dependencies
       run: |
         sudo apt-get update
-        sudo apt-get install -y build-essential curl zip unzip git python3
+        sudo apt-get install -y build-essential curl zip unzip git python3 clang libncurses-dev bc flex bison libssl-dev
 
     - name: Install Bazel via Bazelisk
       run: |
@@ -44,17 +44,7 @@ jobs:
         try-import %workspace%/device.bazelrc
         EOF
 
-    - name: Setup Bazel Binary # NEW CRITICAL STEP
-      working-directory: ./kernel_devices_google_shusky
-      run: |
-        mkdir -p tools
-        # Copy system-installed bazel to project tools directory
-        cp /usr/local/bin/bazel tools/
-        chmod +x tools/bazel
-        # Verify existence
-        ls -l tools/bazel
-
-    - name: Build Kernel
+    - name: Setup Workspace Status Script
       working-directory: ./kernel_devices_google_shusky
       run: |
         mkdir -p tools
@@ -65,11 +55,19 @@ jobs:
         EOF
         chmod +x tools/workspace_status.sh
 
-        # Verify build environment
+    - name: Debug Environment
+      working-directory: ./kernel_devices_google_shusky
+      run: |
         echo "Current directory: $(pwd)"
-        ls -l tools/
+        echo "Bazel version: $(bazel --version)"
+        echo "Clang version: $(clang --version)"
+        echo "Git revision: $(git rev-parse HEAD)"
+        ls -l
 
-        ./build_shusky.sh --verbose_failures
+    - name: Build Kernel
+      working-directory: ./kernel_devices_google_shusky
+      run: |
+        ./build_shusky.sh --verbose_failures --stamp
 
     - name: Upload Artifacts
       if: success()
