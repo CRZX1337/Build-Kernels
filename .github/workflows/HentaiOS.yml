@@ -37,16 +37,32 @@ jobs:
       working-directory: ./kernel_devices_google_shusky
       run: |
         echo "8.0.1" > .bazelversion
+        # Overwrite .bazelrc to avoid duplication issues
         cat << EOF > .bazelrc
+        build --stamp
+        build --enable_platform_specific_config
         build --config=linux
-        build --define=stamp=true
+        try-import %workspace%/device.bazelrc
         EOF
 
-    - name: Verify Bazel Configuration
+    - name: Verify .bazelrc
       working-directory: ./kernel_devices_google_shusky
       run: |
         echo "Contents of .bazelrc:"
         cat .bazelrc
+
+    - name: Verify device.bazelrc
+      working-directory: ./kernel_devices_google_shusky
+      run: |
+        echo "Contents of device.bazelrc:"
+        cat device.bazelrc || echo "No device.bazelrc"
+
+    - name: Setup Bazel Binary
+      working-directory: ./kernel_devices_google_shusky
+      run: |
+        mkdir -p tools
+        curl -L -o tools/bazel https://github.com/bazelbuild/bazel/releases/download/6.1.1/bazel-6.1.1-linux-x86_64
+        chmod +x tools/bazel
 
     - name: Setup Workspace Status Script
       working-directory: ./kernel_devices_google_shusky
@@ -62,7 +78,7 @@ jobs:
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
-        ./build_shusky.sh --verbose_failures --define=stamp=true
+        ./build_shusky.sh --verbose_failures --stamp --define=stamp=true
 
     - name: Upload Artifacts
       if: success()
