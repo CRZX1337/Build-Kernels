@@ -33,22 +33,15 @@ jobs:
         git checkout Vallhound
         git submodule update --init --recursive --depth=1
 
-    - name: Debug Directory Structure
-      run: |
-        echo "===== Full directory structure ====="
-        cd kernel_devices_google_shusky
-        ls -alR  # This will show where BUILD.bazel actually lives
-
     - name: Setup Bazel Environment
       run: |
         cd kernel_devices_google_shusky
         echo "build --enable_platform_specific_config" >> .bazelrc
         echo "try-import %workspace%/device.bazelrc" >> .bazelrc
 
-        # Update this path based on the debug output above!
+        # CORRECTED PATHS BASED ON DEBUG OUTPUT
         echo "Checking for BUILD.bazel:"
-        ls -l devices/google/shusky/BUILD.bazel  # Adjust if debug shows different path
-        
+        ls -l BUILD.bazel  # Now in root directory
         echo "Checking for device.bazelrc:"
         ls -l device.bazelrc
 
