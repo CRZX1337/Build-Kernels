@@ -26,42 +26,25 @@ jobs:
         chmod +x bazelisk
         sudo mv bazelisk /usr/local/bin/bazel
 
-    - name: Setup Build Environment
+    - name: Clone Kernel Source
       run: |
-        WORKSPACE_DIR=$(pwd)
-        mkdir -p tools
-        cp /usr/local/bin/bazel tools/
-        chmod +x tools/bazel
-        echo "PATH=$WORKSPACE_DIR/tools:$PATH" >> $GITHUB_ENV
-
-    - name: Prepare Kernel Source
-      run: |
-        WORKSPACE_DIR=$(pwd)
-        TEMP_DIR=$(mktemp -d)
-        # Clone kernel source
-        git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git "$TEMP_DIR"
-        cd "$TEMP_DIR"
+        git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git
+        cd kernel_devices_google_shusky
         git checkout Vallhound
         git submodule update --init --recursive
-        
-        # Clean workspace and move kernel source
-        cd "$WORKSPACE_DIR"
-        rm -rf * .[!.]* ..?*
-        mv "$TEMP_DIR"/* "$TEMP_DIR"/.[!.]* "$WORKSPACE_DIR"/ 2>/dev/null || true
-        
-        # Create workspace_status.sh
-        mkdir -p tools
-        cat > tools/workspace_status.sh << 'EOF'
+
+    - name: Setup Workspace Status Script
+      run: |
+        mkdir -p kernel_devices_google_shusky/tools
+        cat > kernel_devices_google_shusky/tools/workspace_status.sh << 'EOF'
         #!/bin/bash
         echo "STABLE_BUILD_SCM_REVISION $(git rev-parse HEAD)"
         echo "BUILD_TIMESTAMP $(date +%s)"
         EOF
-        chmod +x tools/workspace_status.sh
-        
-        # Clean up
-        rm -rf "$TEMP_DIR"
+        chmod +x kernel_devices_google_shusky/tools/workspace_status.sh
 
     - name: Build Kernel
+      working-directory: ./kernel_devices_google_shusky
       run: |
         chmod +x build_shusky.sh
         ./build_shusky.sh
@@ -72,6 +55,6 @@ jobs:
       with:
         name: kernel-artifacts
         path: |
-          out/mixed/dist/*
-          bazel-bin/**/*.ko
-          bazel-bin/**/*.img
+          kernel_devices_google_shusky/out/mixed/dist/*
+          kernel_devices_google_shusky/bazel-bin/**/*.ko
+          kernel_devices_google_shusky/bazel-bin/**/*.img
