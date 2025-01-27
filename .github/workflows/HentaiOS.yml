@@ -40,7 +40,6 @@ jobs:
         cat << EOF > .bazelrc
         build --config=shusky
         build --enable_platform_specific_config
-        build:stamp --define=stamp=true
         try-import %workspace%/device.bazelrc
         EOF
 
@@ -50,11 +49,9 @@ jobs:
         echo "Contents of .bazelrc:"
         cat .bazelrc
 
-    - name: Modify device.bazelrc to include stamp configuration
+    - name: Modify device.bazelrc if needed
       working-directory: ./kernel_devices_google_shusky
       run: |
-        # Füge die Definition für stamp in device.bazelrc hinzu
-        echo "build:stamp --define=stamp=true" >> device.bazelrc
         echo "Updated device.bazelrc:"
         cat device.bazelrc
 
@@ -79,7 +76,7 @@ jobs:
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
-        ./build_shusky.sh --verbose_failures --config=shusky --config=stamp
+        ./build_shusky.sh --verbose_failures --config=shusky
 
     - name: Upload Artifacts
       if: success()
