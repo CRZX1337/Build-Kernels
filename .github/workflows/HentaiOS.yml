@@ -22,7 +22,6 @@ jobs:
 
     - name: Install Bazel
       run: |
-        # Download bazelisk directly
         curl -L -o bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.18.0/bazelisk-linux-amd64
         chmod +x bazelisk
         sudo mv bazelisk /usr/local/bin/bazel
@@ -30,64 +29,27 @@ jobs:
     - name: Setup Build Environment
       run: |
         WORKSPACE_DIR=$(pwd)
-        echo "Current directory: $WORKSPACE_DIR"
         mkdir -p tools
-        echo "Copying bazel to tools directory"
         cp /usr/local/bin/bazel tools/
         chmod +x tools/bazel
-        echo "Tools directory contents:"
-        ls -la tools/
-        echo "Testing bazel directly:"
-        tools/bazel version
         echo "PATH=$WORKSPACE_DIR/tools:$PATH" >> $GITHUB_ENV
 
     - name: Prepare Kernel Source
       run: |
-        # Save current directory
         WORKSPACE_DIR=$(pwd)
-        echo "Workspace directory: $WORKSPACE_DIR"
-        
-        # Verify Bazel files exist before backup
-        echo "Initial Bazel files:"
-        ls -la MODULE.bazel WORKSPACE.bazel .bazelrc
-        
-        # Save tools and Bazel files
-        cp -r tools /tmp/tools_backup
-        cp MODULE.bazel /tmp/MODULE.bazel
-        cp WORKSPACE.bazel /tmp/WORKSPACE.bazel
-        cp .bazelrc /tmp/.bazelrc
-        echo "Tools and Bazel files backed up"
-        
-        # Create temp directory for clone
         TEMP_DIR=$(mktemp -d)
-        echo "Created temp directory: $TEMP_DIR"
-        
         # Clone kernel source
-        echo "Cloning kernel source..."
         git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git "$TEMP_DIR"
         cd "$TEMP_DIR"
-        echo "Checking out Vallhound branch..."
         git checkout Vallhound
-        echo "Updating submodules..."
         git submodule update --init --recursive
         
-        # Clean workspace directory
+        # Clean workspace and move kernel source
         cd "$WORKSPACE_DIR"
-        echo "Cleaning workspace directory..."
         rm -rf * .[!.]* ..?*
-        
-        # Move kernel source
-        echo "Moving kernel source to workspace..."
         mv "$TEMP_DIR"/* "$TEMP_DIR"/.[!.]* "$WORKSPACE_DIR"/ 2>/dev/null || true
         
-        # Restore tools and Bazel files
-        echo "Restoring tools and Bazel files..."
-        cp -r /tmp/tools_backup tools
-        cp /tmp/MODULE.bazel MODULE.bazel
-        cp /tmp/WORKSPACE.bazel WORKSPACE.bazel
-        cp /tmp/.bazelrc .bazelrc
-        
-        # Create workspace status script
+        # Create workspace_status.sh
         mkdir -p tools
         cat > tools/workspace_status.sh << 'EOF'
         #!/bin/bash
@@ -96,31 +58,11 @@ jobs:
         EOF
         chmod +x tools/workspace_status.sh
         
-        # Verify files after restore
-        echo "Verifying restored files:"
-        ls -la MODULE.bazel WORKSPACE.bazel .bazelrc
-        echo "Contents of MODULE.bazel:"
-        cat MODULE.bazel
-        echo "Contents of WORKSPACE.bazel:"
-        cat WORKSPACE.bazel
-        echo "Contents of .bazelrc:"
-        cat .bazelrc
-        
         # Clean up
         rm -rf "$TEMP_DIR"
-        
-        echo "Final workspace contents:"
-        ls -la
 
     - name: Build Kernel
       run: |
-        echo "Current directory: $(pwd)"
-        echo "Directory contents:"
-        ls -la
-        echo "Tools directory contents:"
-        ls -la tools/
-        echo "Verifying Bazel files before build:"
-        ls -la MODULE.bazel WORKSPACE.bazel .bazelrc
         chmod +x build_shusky.sh
         ./build_shusky.sh
 
