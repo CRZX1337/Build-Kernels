@@ -40,6 +40,7 @@ jobs:
         cat << EOF > .bazelrc
         build --config=shusky
         build --enable_platform_specific_config
+        build:stamp --define=stamp=true
         try-import %workspace%/device.bazelrc
         EOF
 
@@ -70,9 +71,7 @@ jobs:
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
-       # Wait for all previous steps to complete
-        sleep 5
-        ./build_shusky.sh --verbose_failures --config=shusky
+        ./build_shusky.sh --verbose_failures --config=shusky --config=stamp
 
     - name: Upload Artifacts
       if: success()
