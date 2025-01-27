@@ -36,28 +36,27 @@ jobs:
     - name: Configure Bazel Environment
       working-directory: ./kernel_devices_google_shusky
       run: |
-        # Create .bazelversion file to enforce specific version
         echo "8.0.1" > .bazelversion
-
-        # Configure .bazelrc with required settings
         cat << EOF >> .bazelrc
-        # Added to fix stamp error
         build --stamp
         build --enable_platform_specific_config
         build --config=linux
         try-import %workspace%/device.bazelrc
         EOF
 
-        # Verify configurations
-        echo "Modified .bazelrc contents:"
-        cat .bazelrc
-        echo "Device.bazelrc contents:"
-        cat device.bazelrc
+    - name: Setup Bazel Binary # NEW CRITICAL STEP
+      working-directory: ./kernel_devices_google_shusky
+      run: |
+        mkdir -p tools
+        # Copy system-installed bazel to project tools directory
+        cp /usr/local/bin/bazel tools/
+        chmod +x tools/bazel
+        # Verify existence
+        ls -l tools/bazel
 
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
-        # Create workspace status script
         mkdir -p tools
         cat > tools/workspace_status.sh << 'EOF'
         #!/bin/bash
@@ -66,8 +65,10 @@ jobs:
         EOF
         chmod +x tools/workspace_status.sh
 
-        # Execute build with debugging
-        chmod +x build_shusky.sh
+        # Verify build environment
+        echo "Current directory: $(pwd)"
+        ls -l tools/
+
         ./build_shusky.sh --verbose_failures
 
     - name: Upload Artifacts
