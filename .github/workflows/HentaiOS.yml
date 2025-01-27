@@ -37,24 +37,11 @@ jobs:
       working-directory: ./kernel_devices_google_shusky
       run: |
         echo "8.0.1" > .bazelversion
-        # Create a .bazelrc file to define the 'stamp' configuration
+        # Create a .bazelrc file to define 'stamp' configuration
         cat << EOF > .bazelrc
         build:stamp --workspace_status_command=tools/workspace_status.sh
-        build:shusky --config=stamp
         try-import %workspace%/device.bazelrc
         EOF
-
-    - name: Verify .bazelrc
-      working-directory: ./kernel_devices_google_shusky
-      run: |
-        echo "Contents of .bazelrc:"
-        cat .bazelrc
-
-    - name: Verify device.bazelrc
-      working-directory: ./kernel_devices_google_shusky
-      run: |
-        echo "Contents of device.bazelrc:"
-        cat device.bazelrc || echo "No device.bazelrc"
 
     - name: Setup Bazel Binary
       working-directory: ./kernel_devices_google_shusky
@@ -73,6 +60,14 @@ jobs:
         echo "BUILD_TIMESTAMP $(date +%s)"
         EOF
         chmod +x tools/workspace_status.sh
+
+    - name: Verify Configuration Files
+      working-directory: ./kernel_devices_google_shusky
+      run: |
+        echo "Verifying .bazelrc:"
+        cat .bazelrc || echo ".bazelrc not found"
+        echo "Verifying device.bazelrc:"
+        cat device.bazelrc || echo "device.bazelrc not found"
 
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
