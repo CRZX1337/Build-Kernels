@@ -31,18 +31,24 @@ jobs:
         git clone https://gitlab.hentaios.com/hentaios-gs-6.x/kernel_devices_google_shusky.git
         cd kernel_devices_google_shusky
         git checkout Vallhound
-        git submodule update --init --recursive
+        git submodule update --init --recursive --depth=1
+
+    - name: Debug Directory Structure
+      run: |
+        echo "===== Full directory structure ====="
+        cd kernel_devices_google_shusky
+        ls -alR  # This will show where BUILD.bazel actually lives
 
     - name: Setup Bazel Environment
       run: |
-        # Ensure the kernel's device.bazelrc is recognized
         cd kernel_devices_google_shusky
         echo "build --enable_platform_specific_config" >> .bazelrc
         echo "try-import %workspace%/device.bazelrc" >> .bazelrc
 
-        # Verify critical files exist
+        # Update this path based on the debug output above!
         echo "Checking for BUILD.bazel:"
-        ls -l private/devices/google/shusky/BUILD.bazel
+        ls -l devices/google/shusky/BUILD.bazel  # Adjust if debug shows different path
+        
         echo "Checking for device.bazelrc:"
         ls -l device.bazelrc
 
@@ -55,7 +61,6 @@ jobs:
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
-        # Generate workspace_status.sh (required for stamping)
         mkdir -p tools
         cat > tools/workspace_status.sh << 'EOF'
         #!/bin/bash
@@ -64,7 +69,6 @@ jobs:
         EOF
         chmod +x tools/workspace_status.sh
 
-        # Run the build script
         chmod +x build_shusky.sh
         ./build_shusky.sh
 
