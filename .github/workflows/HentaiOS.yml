@@ -33,14 +33,13 @@ jobs:
         git checkout Vallhound
         git submodule update --init --recursive --depth=1
 
-    - name: Configure Bazel Environment
+    - name: Setup .bazelrc
       working-directory: ./kernel_devices_google_shusky
       run: |
-        echo "8.0.1" > .bazelversion
+        # Erstelle die .bazelrc-Datei mit den notwendigen Konfigurationen
         cat << EOF > .bazelrc
-        build --config=stamp
+        build --config=shusky
         build --enable_platform_specific_config
-        build --config=linux
         try-import %workspace%/device.bazelrc
         EOF
 
@@ -50,17 +49,11 @@ jobs:
         echo "Contents of .bazelrc:"
         cat .bazelrc
 
-    - name: Verify device.bazelrc
-      working-directory: ./kernel_devices_google_shusky
-      run: |
-        echo "Contents of device.bazelrc:"
-        cat device.bazelrc || echo "No device.bazelrc"
-
     - name: Setup Bazel Binary
       working-directory: ./kernel_devices_google_shusky
       run: |
         mkdir -p tools
-        curl -L -o tools/bazel https://github.com/bazelbuild/bazel/releases/download/6.1.1/bazel-6.1.1-linux-x86_64
+        cp /usr/local/bin/bazel tools/
         chmod +x tools/bazel
 
     - name: Setup Workspace Status Script
@@ -74,16 +67,12 @@ jobs:
         EOF
         chmod +x tools/workspace_status.sh
 
-    - name: Debug Bazel Configuration
-      working-directory: ./kernel_devices_google_shusky
-      run: |
-        echo "Bazel Configuration Debug:"
-        ./tools/bazel info
-
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
-        ./build_shusky.sh --verbose_failures --config=stamp
+       # Wait for all previous steps to complete
+        sleep 5
+        ./build_shusky.sh --verbose_failures --config=shusky
 
     - name: Upload Artifacts
       if: success()
