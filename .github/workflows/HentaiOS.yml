@@ -20,7 +20,7 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential curl zip unzip git python3
 
-    - name: Install Bazel
+    - name: Install Bazel via Bazelisk
       run: |
         curl -L -o bazelisk https://github.com/bazelbuild/bazelisk/releases/download/v1.18.0/bazelisk-linux-amd64
         chmod +x bazelisk
@@ -33,27 +33,31 @@ jobs:
         git checkout Vallhound
         git submodule update --init --recursive --depth=1
 
-    - name: Setup Bazel Environment
+    - name: Configure Bazel Environment
+      working-directory: ./kernel_devices_google_shusky
       run: |
-        cd kernel_devices_google_shusky
-        echo "build --enable_platform_specific_config" >> .bazelrc
-        echo "try-import %workspace%/device.bazelrc" >> .bazelrc
+        # Create .bazelversion file to enforce specific version
+        echo "8.0.1" > .bazelversion
 
-        # CORRECTED PATHS BASED ON DEBUG OUTPUT
-        echo "Checking for BUILD.bazel:"
-        ls -l BUILD.bazel  # Now in root directory
-        echo "Checking for device.bazelrc:"
-        ls -l device.bazelrc
+        # Configure .bazelrc with required settings
+        cat << EOF >> .bazelrc
+        # Added to fix stamp error
+        build --stamp
+        build --enable_platform_specific_config
+        build --config=linux
+        try-import %workspace%/device.bazelrc
+        EOF
 
-    - name: Copy Bazel Binary
-      run: |
-        mkdir -p kernel_devices_google_shusky/tools
-        cp /usr/local/bin/bazel kernel_devices_google_shusky/tools/
-        chmod +x kernel_devices_google_shusky/tools/bazel
+        # Verify configurations
+        echo "Modified .bazelrc contents:"
+        cat .bazelrc
+        echo "Device.bazelrc contents:"
+        cat device.bazelrc
 
     - name: Build Kernel
       working-directory: ./kernel_devices_google_shusky
       run: |
+        # Create workspace status script
         mkdir -p tools
         cat > tools/workspace_status.sh << 'EOF'
         #!/bin/bash
@@ -62,8 +66,9 @@ jobs:
         EOF
         chmod +x tools/workspace_status.sh
 
+        # Execute build with debugging
         chmod +x build_shusky.sh
-        ./build_shusky.sh
+        ./build_shusky.sh --verbose_failures
 
     - name: Upload Artifacts
       if: success()
