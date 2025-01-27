@@ -37,9 +37,10 @@ jobs:
       working-directory: ./kernel_devices_google_shusky
       run: |
         echo "8.0.1" > .bazelversion
+        # Create a .bazelrc file to define the 'stamp' configuration
         cat << EOF > .bazelrc
-        build --config=shusky
-        build --config=stamp
+        build:stamp --workspace_status_command=tools/workspace_status.sh
+        build:shusky --config=stamp
         try-import %workspace%/device.bazelrc
         EOF
 
