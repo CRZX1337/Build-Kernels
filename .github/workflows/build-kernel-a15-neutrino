@@ -1,10 +1,10 @@
-name: Build A15 Zuma Kernel
+name: Build A15 Zuma Kernel 6.1
 
 on:
   workflow_call:  # This allows this workflow to be called from another workflow
   
 jobs:
-  build-kernel-a15-zuma-kernelsu-susfs:
+  build-kernel-a15-zuma-kernelsu-susfs-6.1:
     runs-on: ubuntu-latest
 
     steps:
@@ -25,7 +25,7 @@ jobs:
 
       - name: Set CONFIG Environment Variable
         run: |
-          CONFIG="android_kernel_google_"
+          CONFIG="neutrino_kernel_google_caimito"
           
           # Set CONFIG as an environment variable for future steps
           echo "CONFIG=$CONFIG" >> $GITHUB_ENV
