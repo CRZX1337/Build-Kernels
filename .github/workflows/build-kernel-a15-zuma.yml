@@ -150,7 +150,7 @@ jobs:
           cd "$CONFIG"
           
           echo "Running sed commands..."
-          sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="-Sultan-CRZX+"/' ./arch/arm64/configs/zuma_defconfig
+          sed -i 's/CONFIG_LOCALVERSION="-Sultan"/CONFIG_LOCALVERSION="-CRZX-Kernel"/' ./arch/arm64/configs/zuma_defconfig
 
       - name: Build the Kernel
         run: |
