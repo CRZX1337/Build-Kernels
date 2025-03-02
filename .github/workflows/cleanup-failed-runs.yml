@@ -15,12 +15,40 @@ jobs:
       - name: Get Failed Workflow Runs
         id: get_failed_runs
         run: |
+          echo "Starting Get Failed Workflow Runs step..." # Debugging start message
+
           FAILED_RUNS=$(gh api repos/${{ github.repository }}/actions/runs \
             --status failure \
             --per_page 100 \
-            | jq -r '.workflow_runs[] | .id, .name, .status, .conclusion, .html_url')
+            2>&1 ) # Redirect stderr to stdout to capture potential errors
+
+          # Debugging output: Print the raw output of the gh api command
+          echo "--- Raw output of gh api command (including potential errors) ---"
+          echo "$FAILED_RUNS"
+          echo "--- End of raw output ---"
+
+          # Check for errors in gh api command (look for "error" in output)
+          if echo "$FAILED_RUNS" | grep -q "error"; then
+            echo "Error detected in gh api command! Check the raw output above."
+            exit 1 # Exit with error if gh api failed
+          fi
+
+          # Process with jq only if gh api was successful (no errors)
+          FAILED_RUNS_JSON=$(echo "$FAILED_RUNS" | jq -r '.workflow_runs[] | .id, .name, .status, .conclusion, .html_url' 2>/dev/null) # Redirect jq stderr to /dev/null to suppress jq errors if input is not JSON
+
+          # Debugging output: Print the output after jq processing
+          echo "--- Output after jq processing ---"
+          echo "$FAILED_RUNS_JSON"
+          echo "--- End of jq output ---"
+
+          if [[ -z "$FAILED_RUNS_JSON" ]]; then
+            echo "No failed workflow runs found or jq output is empty. FAILED_RUN_LIST will be empty."
+          else
+            echo "Failed workflow runs found and processed by jq. Setting FAILED_RUN_LIST environment variable."
+          fi
+
           echo "FAILED_RUN_LIST<<EOF" >> $GITHUB_ENV
-          echo "$FAILED_RUNS" >> $GITHUB_ENV
+          echo "$FAILED_RUNS_JSON" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
       - name: Cancel Failed Runs
