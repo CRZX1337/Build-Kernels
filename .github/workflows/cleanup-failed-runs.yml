@@ -6,8 +6,7 @@ on:
   workflow_dispatch: # Allow manual triggering
 
 permissions:
-  actions: read  # To list workflow runs
-  actions: write # To cancel workflow runs
+  actions: write  # To list and cancel workflow runs.  Combined read and write into 'write' for brevity as 'write' implies 'read' in this context.
 
 jobs:
   cleanup:
