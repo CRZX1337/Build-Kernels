@@ -1,7 +1,7 @@
 name: Cleanup Workflow Runs
 
 on:
-  # Run daily at midnight UTC; adjust the cron as needed.
+  # Run daily at midnight UTC; adjust the cron schedule as needed.
   schedule:
     - cron: '0 0 * * *'
   # Allow manual triggering.
@@ -12,7 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Clean up ended workflow runs
-        uses: ridedott/workflow-run-cleanup-action@v1
-        with:
-          # Use the automatically provided GitHub token.
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+        uses: rokroskar/workflow-run-cleanup-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: 'FALSE'
+        # Optional: Prevent running on tags or master branch if not desired.
+        if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/master'"
