@@ -14,22 +14,14 @@ on:
         default: true
 
 jobs:
-  build-kernel-a15-gs201:
-    uses: ./.github/workflows/gs201.yml
-    secrets: inherit
   build-kernel-a15-zuma:
     uses: ./.github/workflows/zuma.yml
     secrets: inherit
-  build-kernel-a15-zumapro:
-    uses: ./.github/workflows/zumapro.yml
-    secrets: inherit
-
+    
   trigger-release:
     runs-on: ubuntu-latest
     needs:
-        - build-kernel-a15-gs201
         - build-kernel-a15-zuma
-        - build-kernel-a15-zumapro
     if: ${{ inputs.make_release }}
     env:
       REPO_OWNER: TheWildJames
