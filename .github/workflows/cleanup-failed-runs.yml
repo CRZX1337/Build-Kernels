@@ -6,7 +6,7 @@ on:
   workflow_dispatch: # Allow manual triggering
 
 permissions:
-  actions: write  # To list and cancel workflow runs.  Combined read and write into 'write' for brevity as 'write' implies 'read' in this context.
+  actions: write  # To list and cancel workflow runs
 
 jobs:
   cleanup:
@@ -17,7 +17,7 @@ jobs:
         run: |
           FAILED_RUNS=$(gh api repos/${{ github.repository }}/actions/runs \
             --status failure \
-            --per_page 100 # Adjust per_page as needed, max 100, defaults to 30
+            --per_page 100 \
             | jq -r '.workflow_runs[] | .id, .name, .status, .conclusion, .html_url')
           echo "FAILED_RUN_LIST<<EOF" >> $GITHUB_ENV
           echo "$FAILED_RUNS" >> $GITHUB_ENV
