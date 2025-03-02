@@ -1,0 +1,51 @@
+name: Cleanup Failed Workflow Runs
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run daily at midnight UTC (adjust as needed)
+  workflow_dispatch: # Allow manual triggering
+
+permissions:
+  actions: read  # To list workflow runs
+  actions: write # To cancel workflow runs
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Failed Workflow Runs
+        id: get_failed_runs
+        run: |
+          FAILED_RUNS=$(gh api repos/${{ github.repository }}/actions/runs \
+            --status failure \
+            --per_page 100 # Adjust per_page as needed, max 100, defaults to 30
+            | jq -r '.workflow_runs[] | .id, .name, .status, .conclusion, .html_url')
+          echo "FAILED_RUN_LIST<<EOF" >> $GITHUB_ENV
+          echo "$FAILED_RUNS" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Cancel Failed Runs
+        run: |
+          FAILED_RUN_LIST="${FAILED_RUN_LIST}"
+          IFS=$'\n' read -r -d '' -a RUN_ARRAY <<< "$FAILED_RUN_LIST"
+
+          for i in "${!RUN_ARRAY[@]}"; do
+            if (( i % 5 == 0 )); then # Every 5th line is the run ID based on jq output
+              RUN_ID="${RUN_ARRAY[$i]}"
+              RUN_NAME="${RUN_ARRAY[$i+1]}"
+              RUN_STATUS="${RUN_ARRAY[$i+2]}"
+              RUN_CONCLUSION="${RUN_ARRAY[$i+3]}"
+              RUN_URL="${RUN_ARRAY[$i+4]}"
+
+              echo "Checking run: $RUN_NAME (ID: $RUN_ID), Status: $RUN_STATUS, Conclusion: $RUN_CONCLUSION"
+
+              # Check if the run is still running or queued (cancellable states)
+              if [[ "$RUN_STATUS" == "queued" ]] || [[ "$RUN_STATUS" == "in_progress" ]]; then
+                echo "  Run is cancellable (Status: $RUN_STATUS). Cancelling..."
+                gh api --method POST repos/${{ github.repository }}/actions/runs/$RUN_ID/cancel
+                echo "  Run $RUN_NAME (ID: $RUN_ID) cancelled."
+              else
+                echo "  Run is not cancellable (Status: $RUN_STATUS). Skipping."
+              fi
+            fi
+          done
