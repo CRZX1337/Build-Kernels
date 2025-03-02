@@ -12,45 +12,43 @@ jobs:
   cleanup:
     runs-on: ubuntu-latest
     steps:
-      - name: Get Failed Workflow Runs (Attempt 3 - Super Verbose Logging)
+      - name: Update gh CLI to latest version
+        run: |
+          gh --version # Print current version for logging
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh -y
+          gh --version # Print updated version for logging
+
+      - name: Get Failed Workflow Runs
         id: get_failed_runs
         run: |
-          echo "Starting Get Failed Workflow Runs step (Attempt 3 - Super Verbose)..."
+          echo "Starting Get Failed Workflow Runs step..."
 
-          # --- Start of Debugging Section (xtrace - set -x) ---
-          # Enable xtrace - this will print each command before execution
-          set -x
-
-          # Capture both stdout and stderr into a single variable from gh api command
-          OUTPUT=$(gh api repos/${{ github.repository }}/actions/runs \
+          FAILED_RUNS=$(gh api repos/${{ github.repository }}/actions/runs \
             --status failure \
             --per_page 100 \
-            2>&1)
+            2>&1 )
 
-          # Disable xtrace after the command
-          set +x
-          # --- End of Debugging Section (xtrace - set +x) ---
-
-          # --- Debugging Output: Print the *entire* captured output ---
-          echo "--- Entire captured output of gh api command (stdout and stderr) ---"
-          echo "$OUTPUT"
-          echo "--- End of captured output ---"
-          # --- End of Debugging Output ---
+          # Debugging output: Print the raw output of gh api command
+          echo "--- Raw output of gh api command (including potential errors) ---"
+          echo "$FAILED_RUNS"
+          echo "--- End of raw output ---"
 
           # Check for errors in gh api command (look for "error" in output)
-          if echo "$OUTPUT" | grep -q "error"; then
-            echo "Error detected in gh api command! Check the captured output above."
+          if echo "$FAILED_RUNS" | grep -q "error"; then
+            echo "Error detected in gh api command! Check the raw output above."
             exit 1 # Exit with error if gh api failed
           fi
 
-          # Process with jq only if no error was detected
-          FAILED_RUNS_JSON=$(echo "$OUTPUT" | jq -r '.workflow_runs[] | .id, .name, .status, .conclusion, .html_url' 2>/dev/null)
+          # Process with jq only if gh api was successful (no errors)
+          FAILED_RUNS_JSON=$(echo "$FAILED_RUNS" | jq -r '.workflow_runs[] | .id, .name, .status, .conclusion, .html_url' 2>/dev/null)
 
-          # --- Debugging Output for jq processing ---
+          # Debugging output: Print the output after jq processing
           echo "--- Output after jq processing ---"
           echo "$FAILED_RUNS_JSON"
           echo "--- End of jq output ---"
-          # --- End of Debugging Output ---
 
           if [[ -z "$FAILED_RUNS_JSON" ]]; then
             echo "No failed workflow runs found or jq output is empty. FAILED_RUN_LIST will be empty."
