@@ -1,72 +1,78 @@
-name: Cleanup Failed Workflow Runs
+name: Cleanup Failed Workflow Runs - DIAGNOSTIC
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Run daily at midnight UTC (adjust as needed)
-  workflow_dispatch: # Allow manual triggering
+    - cron: '0 0 * * *'
+  workflow_dispatch:
 
 permissions:
-  actions: write  # To list and cancel workflow runs
+  actions: write
 
 jobs:
-  cleanup:
+  diagnostic_cleanup:
     runs-on: ubuntu-latest
     steps:
-      - name: Update gh CLI to latest version
+      - name: Step 0: Print initial gh CLI version
+        run: gh --version
+
+      - name: Step 1: Update gh CLI to latest version
         run: |
-          gh --version # Print current version for logging
+          gh --version # Print current version for logging before update
           curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
           echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
           sudo apt update
           sudo apt install gh -y
-          gh --version # Print updated version for logging
+          gh --version # Print updated version for logging after update
 
-      - name: Get Failed Workflow Runs
-        id: get_failed_runs
+      - name: Step 2: Print gh CLI version AFTER update (Verification)
+        run: gh --version # VERIFY VERSION AFTER UPDATE
+
+      - name: Step 3: Get Workflow Runs (Simplified gh api command - NO --status)
+        id: get_workflow_runs_diagnostic
         run: |
-          echo "Starting Get Failed Workflow Runs step..."
+          echo "Starting Step 3: Get Workflow Runs (Simplified gh api - NO --status)..."
 
-          FAILED_RUNS=$(gh api repos/${{ github.repository }}/actions/runs \
-            --status failure \
-            --per_page 100 \
-            2>&1 )
+          # --- Start of Debugging Section (xtrace - set -x) ---
+          set -x
+          OUTPUT=$(gh api repos/CRZX1337/Build-Kernels/actions/runs --per_page 100 2>&1) # Simplified command - NO --status
+          set +x
+          # --- End of Debugging Section ---
 
-          # Debugging output: Print the raw output of gh api command
-          echo "--- Raw output of gh api command (including potential errors) ---"
-          echo "$FAILED_RUNS"
+          echo "--- Raw output of simplified gh api command (stdout and stderr) ---"
+          echo "$OUTPUT"
           echo "--- End of raw output ---"
 
-          # Check for errors in gh api command (look for "error" in output)
-          if echo "$FAILED_RUNS" | grep -q "error"; then
-            echo "Error detected in gh api command! Check the raw output above."
-            exit 1 # Exit with error if gh api failed
+          if echo "$OUTPUT" | grep -q "error"; then
+            echo "Error detected in simplified gh api command! Check raw output."
+            exit 1
           fi
 
-          # Process with jq only if gh api was successful (no errors)
-          FAILED_RUNS_JSON=$(echo "$FAILED_RUNS" | jq -r '.workflow_runs[] | .id, .name, .status, .conclusion, .html_url' 2>/dev/null)
+          RUNS_JSON=$(echo "$OUTPUT" | jq -r '.workflow_runs[] | .id, .name, .status, .conclusion, .html_url' 2>/dev/null)
 
-          # Debugging output: Print the output after jq processing
-          echo "--- Output after jq processing ---"
-          echo "$FAILED_RUNS_JSON"
+          echo "--- Output after jq processing (simplified command) ---"
+          echo "$RUNS_JSON"
           echo "--- End of jq output ---"
 
-          if [[ -z "$FAILED_RUNS_JSON" ]]; then
-            echo "No failed workflow runs found or jq output is empty. FAILED_RUN_LIST will be empty."
+          if [[ -z "$RUNS_JSON" ]]; then
+            echo "No workflow runs found or jq output empty (simplified command)."
           else
-            echo "Failed workflow runs found and processed by jq. Setting FAILED_RUN_LIST environment variable."
+            echo "Workflow runs found and processed by jq (simplified command)."
           fi
 
-          echo "FAILED_RUN_LIST<<EOF" >> $GITHUB_ENV
-          echo "$FAILED_RUNS_JSON" >> $GITHUB_ENV
+          echo "DIAGNOSTIC_RUN_LIST<<EOF" >> $GITHUB_ENV # Changed env var name to avoid conflicts
+          echo "$RUNS_JSON" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
-      - name: Cancel Failed Runs
+      - name: Step 4: Cancel Runs (Based on DIAGNOSTIC_RUN_LIST - if Step 3 works)
+        if: env.DIAGNOSTIC_RUN_LIST != '' # Only run if we got runs in Step 3
         run: |
-          FAILED_RUN_LIST="${FAILED_RUN_LIST}"
-          IFS=$'\n' read -r -d '' -a RUN_ARRAY <<< "$FAILED_RUN_LIST"
+          DIAGNOSTIC_RUN_LIST="${DIAGNOSTIC_RUN_LIST}"
+          IFS=$'\n' read -r -d '' -a RUN_ARRAY <<< "$DIAGNOSTIC_RUN_LIST"
+
+          echo "Step 4: Attempting to Cancel Runs (if any from Step 3)..."
 
           for i in "${!RUN_ARRAY[@]}"; do
-            if (( i % 5 == 0 )); then # Every 5th line is the run ID based on jq output
+            if (( i % 5 == 0 )); then
               RUN_ID="${RUN_ARRAY[$i]}"
               RUN_NAME="${RUN_ARRAY[$i+1]}"
               RUN_STATUS="${RUN_ARRAY[$i+2]}"
@@ -75,7 +81,6 @@ jobs:
 
               echo "Checking run: $RUN_NAME (ID: $RUN_ID), Status: $RUN_STATUS, Conclusion: $RUN_CONCLUSION"
 
-              # Check if the run is still running or queued (cancellable states)
               if [[ "$RUN_STATUS" == "queued" ]] || [[ "$RUN_STATUS" == "in_progress" ]]; then
                 echo "  Run is cancellable (Status: $RUN_STATUS). Cancelling..."
                 gh api --method POST repos/${{ github.repository }}/actions/runs/$RUN_ID/cancel
